@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Painel Lava-Rápido - Movida</title>
+
+  <!-- Favicon SVG integrado com identidade Movida -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='22' fill='%23FF6600'/><text x='50%' y='62%' font-family='system-ui, -apple-system, sans-serif' font-weight='900' font-size='34' fill='%23ffffff' text-anchor='middle'>LAVA</text></svg>">
+
+  <style>
+    /* ==========================================================================
+       1. DESIGN TOKENS & VARIÁVEIS DE TEMA (MOVIDA LIGHT / DARK)
+       ========================================================================== */
+    :root {
+      --movida-orange: #FF6600;
+      --movida-hover: #E55C00;
+      --movida-dark: #CC5200;
+      --movida-soft: rgba(255, 102, 0, 0.12);
+
+      /* Modo Claro */
+      --bg-main: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-subtle: #f8fafc;
+      --bg-hover: #f1f5f9;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --border-color: #e2e8f0;
+      --shadow-sm: 0 2px 6px rgba(15, 23, 42, 0.05);
+      --shadow-md: 0 8px 20px rgba(15, 23, 42, 0.08);
+
+      /* Status: Pendente (Falta Fazer) */
+      --pending-bg: #fff7ed;
+      --pending-border: #fed7aa;
+      --pending-text: #c2410c;
+      --pending-badge: #ffedd5;
+
+      /* Status: Pronto (Liberado) */
+      --ready-bg: #ecfdf5;
+      --ready-border: #a7f3d0;
+      --ready-text: #047857;
+      --ready-badge: #d1fae5;
+    }
+
+    html.dark {
+      /* Modo Escuro */
+      --bg-main: #090d16;
+      --bg-card: #111827;
+      --bg-subtle: #1f2937;
+      --bg-hover: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #1f2937;
+      --shadow-sm: 0 4px 10px rgba(0, 0, 0, 0.25);
+      --shadow-md: 0 10px 25px rgba(0, 0, 0, 0.4);
+
+      --pending-bg: rgba(255, 102, 0, 0.10);
+      --pending-border: rgba(255, 102, 0, 0.30);
+      --pending-text: #fb923c;
+      --pending-badge: rgba(255, 102, 0, 0.20);
+
+      --ready-bg: rgba(16, 185, 129, 0.10);
+      --ready-border: rgba(16, 185, 129, 0.28);
+      --ready-text: #34d399;
+      --ready-badge: rgba(16, 185, 129, 0.20);
+    }
+
+    /* ==========================================================================
+       2. RESET & BASE MOBILE-FIRST
+       ========================================================================== */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 12px;
+      line-height: 1.4;
+      transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    .app-container {
+      max-width: 960px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      padding-bottom: 32px;
+    }
+
+    /* ==========================================================================
+       3. CABEÇALHO & BARRA DE AÇÕES
+       ========================================================================== */
+    header {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 14px 16px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    @media (min-width: 768px) {
+      header {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-badge {
+      background-color: var(--movida-orange);
+      color: #ffffff;
+      font-weight: 900;
+      font-size: 1.1rem;
+      letter-spacing: 0.8px;
+      padding: 6px 12px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(255, 102, 0, 0.3);
+      flex-shrink: 0;
+    }
+
+    .brand-info h1 {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .brand-info p {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      padding: 9px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+      background-color: var(--bg-subtle);
+      color: var(--text-main);
+      cursor: pointer;
+      transition: transform 0.1s ease, background-color 0.15s ease;
+      user-select: none;
+      text-decoration: none;
+    }
+
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    .btn-primary {
+      background-color: var(--movida-orange);
+      border-color: var(--movida-orange);
+      color: #ffffff;
+      box-shadow: 0 3px 10px rgba(255, 102, 0, 0.25);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--movida-hover);
+    }
+
+    .btn-share {
+      background-color: #059669;
+      border-color: #059669;
+      color: #ffffff;
+      box-shadow: 0 3px 10px rgba(5, 150, 105, 0.25);
+    }
+
+    .btn-share:hover {
+      background-color: #047857;
+    }
+
+    .btn-icon-only {
+      padding: 9px 11px;
+    }
+
+    /* ==========================================================================
+       4. PAINEL DE INDICADORES (KPIs DE PREPARAÇÃO)
+       ========================================================================== */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .kpi-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 12px 10px;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: border-color 0.15s ease, transform 0.1s ease;
+    }
+
+    .kpi-card:active {
+      transform: scale(0.98);
+    }
+
+    .kpi-card.pending {
+      border-bottom: 3px solid var(--movida-orange);
+    }
+
+    .kpi-card.ready {
+      border-bottom: 3px solid #10b981;
+    }
+
+    .kpi-card.total {
+      border-bottom: 3px solid #64748b;
+    }
+
+    .kpi-num {
+      font-size: 1.65rem;
+      font-weight: 900;
+      line-height: 1.1;
+      display: block;
+    }
+
+    .kpi-card.pending .kpi-num { color: var(--movida-orange); }
+    .kpi-card.ready .kpi-num { color: #10b981; }
+    .kpi-card.total .kpi-num { color: var(--text-main); }
+
+    .kpi-label {
+      font-size: 0.68rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      color: var(--text-muted);
+      margin-top: 4px;
+      display: block;
+    }
+
+    /* Barra de Progresso Geral da Lavagem */
+    .progress-wrapper {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 10px 14px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 10px;
+      background-color: var(--bg-subtle);
+      border-radius: 99px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--movida-orange), #10b981);
+      border-radius: 99px;
+      transition: width 0.35s ease;
+      width: 0%;
+    }
+
+    /* ==========================================================================
+       5. FILTROS MOBILE-FIRST (ABAS DE STATUS + BUSCA + DATAS + CATEGORIAS)
+       ========================================================================== */
+    .controls-box {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .tabs-bar {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      background-color: var(--bg-card);
+      padding: 4px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      gap: 4px;
+    }
+
+    .tab-btn {
+      padding: 9px 6px;
+      border: none;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 0.78rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .tab-btn.active {
+      background-color: var(--movida-orange);
+      color: #ffffff;
+      box-shadow: 0 2px 6px rgba(255, 102, 0, 0.3);
+    }
+
+    .tab-btn.active.tab-ready {
+      background-color: #10b981;
+      box-shadow: 0 2px 6px rgba(16, 185, 129, 0.3);
+    }
+
+    .search-filter-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .search-input {
+      flex: 1;
+      min-width: 200px;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      padding: 10px 14px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      outline: none;
+    }
+
+    .search-input:focus {
+      border-color: var(--movida-orange);
+    }
+
+    .category-pills {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      scrollbar-width: none;
+    }
+
+    .category-pills::-webkit-scrollbar {
+      display: none;
+    }
+
+    .pill {
+      padding: 6px 12px;
+      border-radius: 99px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .pill.active {
+      background-color: var(--movida-soft);
+      border-color: var(--movida-orange);
+      color: var(--movida-orange);
+    }
+
+    .pill.date-pill.active {
+      background-color: #0284c7;
+      border-color: #0284c7;
+      color: #ffffff;
+    }
+
+    /* ==========================================================================
+       6. LISTA DE CARDS DOS VEÍCULOS (FÁCIL LEITURA NO CELULAR)
+       ========================================================================== */
+    .vehicle-list {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    @media (min-width: 768px) {
+      .vehicle-list {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    .v-card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 14px;
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 10px;
+      position: relative;
+      transition: transform 0.15s ease, opacity 0.2s ease;
+    }
+
+    .v-card.is-pending {
+      border-left: 5px solid var(--movida-orange);
+    }
+
+    .v-card.is-ready {
+      border-left: 5px solid #10b981;
+      opacity: 0.88;
+    }
+
+    .v-card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .time-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: var(--text-main);
+      background-color: var(--bg-subtle);
+      padding: 4px 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .time-badge .date-sub {
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .group-badge {
+      font-size: 0.72rem;
+      font-weight: 900;
+      text-transform: uppercase;
+      padding: 4px 10px;
+      border-radius: 8px;
+      background-color: var(--movida-soft);
+      color: var(--movida-orange);
+      border: 1px solid rgba(255, 102, 0, 0.25);
+      letter-spacing: 0.5px;
+    }
+
+    .v-card-body {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .v-model {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-main);
+    }
+
+    .v-meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .plate-tag {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-weight: 800;
+      font-size: 0.82rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      background-color: var(--bg-subtle);
+      border: 1px solid var(--border-color);
+      color: var(--text-main);
+      letter-spacing: 0.5px;
+    }
+
+    .csv-ready-hint {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--ready-text);
+    }
+
+    .v-obs {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+      background-color: var(--bg-subtle);
+      padding: 5px 8px;
+      border-radius: 6px;
+      margin-top: 2px;
+    }
+
+    .v-warning {
+      font-size: 0.74rem;
+      font-weight: 700;
+      color: #b45309;
+      background-color: #fef3c7;
+      border: 1px solid #fcd34d;
+      padding: 6px 9px;
+      border-radius: 8px;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    html.dark .v-warning {
+      color: #fbbf24;
+      background-color: rgba(245, 158, 11, 0.14);
+      border-color: rgba(245, 158, 11, 0.35);
+    }
+
+    .v-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 8px;
+      border-top: 1px dashed var(--border-color);
+      gap: 8px;
+    }
+
+    .status-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+    }
+
+    .status-pill.pending {
+      background-color: var(--pending-badge);
+      color: var(--pending-text);
+    }
+
+    .status-pill.ready {
+      background-color: var(--ready-badge);
+      color: var(--ready-text);
+    }
+
+    .toggle-status-btn {
+      padding: 8px 14px;
+      border-radius: 10px;
+      font-size: 0.8rem;
+      font-weight: 800;
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: transform 0.1s ease, background-color 0.15s ease;
+    }
+
+    .toggle-status-btn:active {
+      transform: scale(0.96);
+    }
+
+    .toggle-status-btn.mark-ready {
+      background-color: #10b981;
+      color: #ffffff;
+      box-shadow: 0 3px 8px rgba(16, 185, 129, 0.25);
+    }
+
+    .toggle-status-btn.mark-ready:hover {
+      background-color: #059669;
+    }
+
+    .toggle-status-btn.mark-pending {
+      background-color: var(--bg-subtle);
+      color: var(--text-muted);
+      border: 1px solid var(--border-color);
+    }
+
+    /* ==========================================================================
+       7. ESTADO VAZIO & NOTIFICAÇÃO TOAST
+       ========================================================================== */
+    .empty-box {
+      background-color: var(--bg-card);
+      border: 1px dashed var(--border-color);
+      border-radius: 16px;
+      padding: 36px 20px;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .empty-box .icon {
+      font-size: 2.5rem;
+    }
+
+    .empty-box h3 {
+      font-size: 1rem;
+      font-weight: 800;
+    }
+
+    .empty-box p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      max-width: 420px;
+    }
+
+    /* Toast Flutuante (Substitui alert()) */
+    .toast-container {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: 90%;
+      max-width: 420px;
+      pointer-events: none;
+    }
+
+    .toast {
+      background-color: #1e293b;
+      color: #ffffff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      font-size: 0.82rem;
+      font-weight: 700;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.35);
+      border-left: 4px solid var(--movida-orange);
+      animation: slideUp 0.25s ease forwards;
+      text-align: center;
+    }
+
+    .toast.success {
+      border-left-color: #10b981;
+    }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(15px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ==========================================================================
+       8. ESTILO DE IMPRESSÃO
+       ========================================================================== */
+    @media print {
+      body { background: #fff !important; color: #000 !important; padding: 0 !important; }
+      .no-print { display: none !important; }
+      .vehicle-list { grid-template-columns: repeat(2, 1fr) !important; gap: 6px !important; }
+      .v-card { break-inside: avoid; border: 1px solid #cbd5e1 !important; padding: 8px !important; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    
+    <!-- CABEÇALHO -->
+    <header>
+      <div class="brand-row">
+        <div class="brand-badge">MOVIDA</div>
+        <div class="brand-info">
+          <h1>Controle Lava-Rápido</h1>
+          <p id="last-update-info">Carregue a planilha de Saída/Retorno para iniciar</p>
+        </div>
+      </div>
+
+      <div class="toolbar no-print">
+        <!-- Upload CSV -->
+        <label class="btn btn-primary">
+          <span>📁</span>
+          <span>Carregar CSV</span>
+          <input type="file" id="csv-input" accept=".csv, .txt, .tsv" style="display: none;">
+        </label>
+
+        <!-- Compartilhar Link com Dados Embutidos (Para GitHub Pages -> Celular) -->
+        <button id="btn-share-link" type="button" class="btn btn-share" title="Gera um link com toda a lista para enviar no WhatsApp do Lava-Rápido">
+          <span>📲</span>
+          <span>Link p/ Lava-Rápido</span>
+        </button>
+
+        <!-- Alternar Tema -->
+        <button id="btn-theme" type="button" class="btn btn-icon-only" title="Alternar Tema Claro/Escuro">
+          <span id="theme-icon">☀️</span>
+        </button>
+
+        <!-- Limpar Lista -->
+        <button id="btn-clear" type="button" class="btn btn-icon-only" title="Limpar Dados Salvos">
+          <span>🗑️</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- INDICADORES KPI -->
+    <section class="kpi-grid">
+      <div class="kpi-card pending" onclick="setStatusFilter('pending')">
+        <span class="kpi-num" id="kpi-pending">0</span>
+        <span class="kpi-label">⏳ Faltam Fazer</span>
+      </div>
+      <div class="kpi-card ready" onclick="setStatusFilter('ready')">
+        <span class="kpi-num" id="kpi-ready">0</span>
+        <span class="kpi-label">✅ Prontos</span>
+      </div>
+      <div class="kpi-card total" onclick="setStatusFilter('all')">
+        <span class="kpi-num" id="kpi-total">0</span>
+        <span class="kpi-label">🚗 Total Saídas</span>
+      </div>
+    </section>
+
+    <!-- BARRA DE PROGRESSO -->
+    <section class="progress-wrapper">
+      <div class="progress-header">
+        <span>Progresso da Preparação</span>
+        <span id="progress-percent" style="color: var(--movida-orange);">0% concluído</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="progress-bar"></div>
+      </div>
+    </section>
+
+    <!-- CONTROLES DE FILTRO E BUSCA -->
+    <section class="controls-box no-print">
+      <div class="tabs-bar">
+        <button type="button" class="tab-btn active" id="tab-pending" onclick="setStatusFilter('pending')">
+          ⏳ Faltam (<span id="tab-count-pending">0</span>)
+        </button>
+        <button type="button" class="tab-btn tab-ready" id="tab-ready" onclick="setStatusFilter('ready')">
+          ✅ Prontos (<span id="tab-count-ready">0</span>)
+        </button>
+        <button type="button" class="tab-btn" id="tab-all" onclick="setStatusFilter('all')">
+          📋 Todos (<span id="tab-count-all">0</span>)
+        </button>
+      </div>
+
+      <div class="search-filter-row">
+        <input type="text" id="search-input" class="search-input" placeholder="🔍 Buscar placa, modelo, grupo ou reserva...">
+      </div>
+
+      <!-- Filtro rápido por Data de Saída -->
+      <div class="category-pills" id="date-pills"></div>
+
+      <!-- Filtro rápido por Categoria/Grupo -->
+      <div class="category-pills" id="category-pills"></div>
+    </section>
+
+    <!-- LISTA DE VEÍCULOS -->
+    <main id="vehicle-list-container">
+      <div class="empty-box">
+        <span class="icon">🧽</span>
+        <h3>Nenhum veículo carregado</h3>
+        <p>Importe o arquivo <strong>Consulta Saída_Retorno de Veículos.csv</strong> no botão laranja acima ou carregue um exemplo abaixo para visualizar o painel.</p>
+        <button type="button" class="btn" onclick="loadSampleData()" style="margin-top: 6px;">
+          🧪 Carregar Exemplo de Demonstração
+        </button>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- CONTAINER DE NOTIFICAÇÕES TOAST -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <script>
+    // ==========================================================================
+    // 1. ESTADO GLOBAL DA APLICAÇÃO
+    // ==========================================================================
+    let vehicles = [];
+    let currentFilterStatus = 'pending'; // 'pending' | 'ready' | 'all'
+    let currentDateFilter = 'ALL';
+    let currentCategory = 'ALL';
+    let searchQuery = '';
+
+    const STORAGE_KEY = 'movida_lava_rapido_v1';
+    const THEME_KEY = 'movida_lava_theme';
+
+    // ==========================================================================
+    // 2. UTILITÁRIOS DE UI, TEXTO E NOTIFICAÇÃO TOAST
+    // ==========================================================================
+    function showToast(message, isSuccess = false) {
+      const container = document.getElementById('toast-container');
+      if (!container) return;
+      const toast = document.createElement('div');
+      toast.className = `toast ${isSuccess ? 'success' : ''}`;
+      toast.textContent = message;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transition = 'opacity 0.25s ease';
+        setTimeout(() => toast.remove(), 260);
+      }, 3200);
+    }
+
+    function escapeHTML(str) {
+      if (str === undefined || str === null) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function normalizeText(str) {
+      if (!str) return '';
+      return String(str)
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .toLowerCase()
+        .trim();
+    }
+
+    // ==========================================================================
+    // 3. GERENCIADOR DE TEMA (CLARO / ESCURO)
+    // ==========================================================================
+    (function initTheme() {
+      const btnTheme = document.getElementById('btn-theme');
+      const themeIcon = document.getElementById('theme-icon');
+      const htmlEl = document.documentElement;
+
+      function applyTheme(isDark) {
+        if (isDark) {
+          htmlEl.classList.add('dark');
+          if (themeIcon) themeIcon.textContent = '☀️';
+          localStorage.setItem(THEME_KEY, 'dark');
+        } else {
+          htmlEl.classList.remove('dark');
+          if (themeIcon) themeIcon.textContent = '🌙';
+          localStorage.setItem(THEME_KEY, 'light');
+        }
+      }
+
+      const saved = localStorage.getItem(THEME_KEY);
+      if (saved) {
+        applyTheme(saved === 'dark');
+      } else {
+        const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        applyTheme(prefersDark);
+      }
+
+      if (btnTheme) {
+        btnTheme.addEventListener('click', () => {
+          applyTheme(!htmlEl.classList.contains('dark'));
+        });
+      }
+    })();
+
+    // ==========================================================================
+    // 4. LEITOR DE CSV RESILIENTE (UTF-8 / WINDOWS-1252 + DATAS + STATUS PRONTO)
+    // ==========================================================================
+    function parseCSVLine(line, delimiter) {
+      const result = [];
+      let cur = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const ch = line[i];
+        if (ch === '"') {
+          if (inQuotes && line[i + 1] === '"') {
+            cur += '"';
+            i++;
+          } else {
+            inQuotes = !inQuotes;
+          }
+        } else if (ch === delimiter && !inQuotes) {
+          result.push(cur.trim());
+          cur = '';
+        } else {
+          cur += ch;
+        }
+      }
+      result.push(cur.trim());
+      return result;
+    }
+
+    function extractDateTime(dateRaw, timeRaw) {
+      const combined = `${dateRaw || ''} ${timeRaw || ''}`.trim();
+      if (!combined) {
+        return { dateDisplay: '', timeDisplay: '--:--', sortTimestamp: Number.MAX_SAFE_INTEGER };
+      }
+
+      let day = null, month = null, year = null;
+      let hour = 23, minute = 59;
+      let hasDate = false, hasTime = false;
+
+      // Padrão BR: DD/MM/YYYY ou DD/MM/YY ou DD/MM
+      const brDateMatch = combined.match(/(\d{1,2})[\/\-](\d{1,2})(?:[\/\-](\d{2,4}))?/);
+      // Padrão ISO: YYYY-MM-DD
+      const isoDateMatch = combined.match(/(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+
+      if (isoDateMatch) {
+        year = parseInt(isoDateMatch[1], 10);
+        month = parseInt(isoDateMatch[2], 10);
+        day = parseInt(isoDateMatch[3], 10);
+        hasDate = true;
+      } else if (brDateMatch) {
+        day = parseInt(brDateMatch[1], 10);
+        month = parseInt(brDateMatch[2], 10);
+        if (brDateMatch[3]) {
+          year = parseInt(brDateMatch[3], 10);
+          if (year < 100) year += 2000;
+        } else {
+          year = new Date().getFullYear();
+        }
+        hasDate = true;
+      }
+
+      // Extrai horário HH:MM
+      const timeMatch = combined.match(/(\d{1,2}):(\d{2})/);
+      if (timeMatch) {
+        hour = parseInt(timeMatch[1], 10);
+        minute = parseInt(timeMatch[2], 10);
+        hasTime = true;
+      }
+
+      const pad = (n) => String(n).padStart(2, '0');
+      const dateDisplay = hasDate ? `${pad(day)}/${pad(month)}${year ? '/' + year : ''}` : '';
+      const timeDisplay = hasTime ? `${pad(hour)}:${pad(minute)}` : '--:--';
+
+      let sortTimestamp = Number.MAX_SAFE_INTEGER;
+      if (hasDate) {
+        sortTimestamp = new Date(year, month - 1, day, hasTime ? hour : 23, hasTime ? minute : 59).getTime();
+      } else if (hasTime) {
+        const now = new Date();
+        sortTimestamp = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hour, minute).getTime();
+      }
+
+      return { dateDisplay, timeDisplay, sortTimestamp };
+    }
+
+    function parseReadyFlag(rawVal) {
+      if (rawVal === undefined || rawVal === null) return false;
+      const str = String(rawVal).trim();
+      if (!str) return false;
+
+      const norm = normalizeText(str);
+      if (['sim', 's', 'ok', 'pronto', 'prontos', 'limpo', 'lavado', 'preparado', 'disponivel', 'liberado', 'true', 'x'].includes(norm)) {
+        return true;
+      }
+      if (['nao', 'n', 'pendente', 'sujo', 'aguardando', 'false', '0'].includes(norm)) {
+        return false;
+      }
+
+      const num = parseFloat(str.replace(',', '.'));
+      if (!isNaN(num)) {
+        return num > 0;
+      }
+      return false;
+    }
+
+    function parseCSVData(rawText) {
+      if (!rawText || !rawText.trim()) {
+        showToast('⚠️ O arquivo CSV está vazio.');
+        return;
+      }
+
+      // Remove BOM UTF-8 caso presente
+      if (rawText.charCodeAt(0) === 0xFEFF) {
+        rawText = rawText.slice(1);
+      }
+
+      const lines = rawText.split(/\r?\n/).map(l => l.trim()).filter(l => l.length > 0);
+      if (lines.length < 2) {
+        showToast('⚠️ O CSV precisa ter cabeçalho e ao menos uma linha de dados.');
+        return;
+      }
+
+      // Detecta delimitador predominante nas primeiras linhas
+      const sampleHeader = lines.slice(0, 3).join('\n');
+      const countSemi = (sampleHeader.match(/;/g) || []).length;
+      const countComma = (sampleHeader.match(/,/g) || []).length;
+      const countTab = (sampleHeader.match(/\t/g) || []).length;
+
+      let delimiter = ';';
+      if (countComma > countSemi && countComma >= countTab) delimiter = ',';
+      else if (countTab > countSemi && countTab > countComma) delimiter = '\t';
+
+      const rows = lines.map(line => parseCSVLine(line, delimiter));
+
+      // Encontra a linha de cabeçalho real (caso haja linhas de título antes da tabela)
+      let headerRowIndex = 0;
+      for (let i = 0; i < Math.min(rows.length, 8); i++) {
+        const joined = normalizeText(rows[i].join(' '));
+        if (
+          joined.includes('grupo') ||
+          joined.includes('categoria') ||
+          joined.includes('modelo') ||
+          joined.includes('veiculo') ||
+          joined.includes('reserva') ||
+          joined.includes('saida') ||
+          joined.includes('pronto') ||
+          joined.includes('placa')
+        ) {
+          headerRowIndex = i;
+          break;
+        }
+      }
+
+      const rawHeaders = rows[headerRowIndex];
+      const headers = rawHeaders.map(h => normalizeText(h));
+
+      // Busca por ordem de prioridade das palavras-chave
+      const findCol = (keywords) => {
+        for (const k of keywords) {
+          const idx = headers.findIndex(h => h.includes(k));
+          if (idx !== -1) return idx;
+        }
+        return -1;
+      };
+
+      const idxDateTime = findCol(['data/hora saida', 'data hora saida', 'data/hora retirada', 'data saida', 'data retirada', 'data/hora', 'data hora', 'previsao', 'data']);
+      const idxTimeOnly = findCol(['hora saida', 'horario saida', 'hora retirada', 'horario', 'hora']);
+      const idxGroup    = findCol(['grupo', 'categoria', 'cat', 'acriss']);
+      const idxModel    = findCol(['modelo', 'descricao grupo', 'descricao', 'veiculo', 'carro']);
+      const idxReady    = findCol([
+        'qtd pronto', 'qtde pronto', 'qtde. pronto', 'carros pronto', 'veiculos pronto',
+        'pronto', 'disponiv', 'disp', 'limp', 'lavad', 'preparad', 'patio',
+        'status', 'situac', 'lavagem', 'preparac', 'checklist', 'estado'
+      ]);
+      const idxRentals  = findCol([
+        'qtde locacoes', 'qtd locacoes', 'qtde. locacoes', 'quantidade locacoes',
+        'qtde loc', 'qtd loc', 'locacoes'
+      ]);
+      const idxPlate  = findCol(['placa', 'frota', 'prefixo']);
+      const idxRes    = findCol(['reserva', 'contrato', 'codigo', 'numero reserva', 'nro reserva']);
+      const idxClient = findCol(['cliente', 'locatario', 'nome']);
+      const idxType   = findCol(['tipo', 'movimento', 'operacao']);
+      const idxObs    = findCol(['obs', 'observacao', 'nota']);
+
+      const parsedVehicles = [];
+
+      for (let i = headerRowIndex + 1; i < rows.length; i++) {
+        const cols = rows[i];
+        if (!cols || cols.length === 0) continue;
+
+        const firstCellNorm = normalizeText(cols[0] || '');
+        if (firstCellNorm === 'total' || firstCellNorm === 'total geral' || firstCellNorm.startsWith('total ')) {
+          continue;
+        }
+
+        // Se existir coluna de tipo de movimento e for exclusivamente retorno, ignora
+        if (idxType !== -1 && cols[idxType]) {
+          const movNorm = normalizeText(cols[idxType]);
+          if (movNorm.includes('retorno') && !movNorm.includes('saida')) {
+            continue;
+          }
+        }
+
+        const dateRaw = idxDateTime !== -1 ? (cols[idxDateTime] || '') : '';
+        const timeRaw = (idxTimeOnly !== -1 && idxTimeOnly !== idxDateTime) ? (cols[idxTimeOnly] || '') : '';
+        const { dateDisplay, timeDisplay, sortTimestamp } = extractDateTime(dateRaw, timeRaw);
+
+        let plate  = idxPlate !== -1 ? (cols[idxPlate] || '').toUpperCase().trim() : '';
+        let model  = idxModel !== -1 ? (cols[idxModel] || '').trim() : '';
+        let group  = idxGroup !== -1 ? (cols[idxGroup] || '').toUpperCase().trim() : '';
+        let res    = idxRes !== -1 ? (cols[idxRes] || '').trim() : '';
+        let client = idxClient !== -1 ? (cols[idxClient] || '').trim() : '';
+        let obs    = idxObs !== -1 ? (cols[idxObs] || '').trim() : '';
+
+        // Ignora placeholder padrão de placa não alocada
+        const plateNorm = normalizeText(plate);
+        if (
+          plateNorm.includes('nenhuma') ||
+          plateNorm.includes('nao alocad') ||
+          plateNorm.includes('sem placa') ||
+          plate === '-' ||
+          plate === '0'
+        ) {
+          plate = '';
+        }
+
+        // Fallback caso modelo ou grupo não tenham sido mapeados pelo nome da coluna
+        if (!model && !group && cols.length >= 2) {
+          group = (cols[0] || 'GERAL').toUpperCase().trim();
+          model = (cols[1] || 'Veículo').trim();
+        }
+        if (!group) group = 'GERAL';
+        if (!model) model = `Grupo ${group}`;
+
+        // Ignora linhas totalmente vazias
+        if (!dateDisplay && timeDisplay === '--:--' && !res && !client && model === 'Veículo') {
+          continue;
+        }
+
+        // Verifica se Qtde Locações é igual a zero
+        let zeroRentals = false;
+        if (idxRentals !== -1 && cols[idxRentals] !== undefined) {
+          const rawRentals = cols[idxRentals].trim();
+          if (rawRentals !== '') {
+            const parsedRentals = parseFloat(rawRentals.replace(',', '.'));
+            if (!isNaN(parsedRentals) && parsedRentals === 0) {
+              zeroRentals = true;
+            }
+          }
+        }
+
+        // Verifica se o carro já vem pronto na planilha
+        const isAlreadyReady = idxReady !== -1 ? parseReadyFlag(cols[idxReady]) : false;
+
+        parsedVehicles.push({
+          id: `v_${i}_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+          dateDisplay,
+          timeDisplay,
+          sortTimestamp,
+          plate,
+          model,
+          group,
+          res,
+          client,
+          obs,
+          zeroRentals,
+          fromCsvReady: isAlreadyReady,
+          isReady: isAlreadyReady
+        });
+      }
+
+      if (parsedVehicles.length === 0) {
+        showToast('⚠️ Nenhum veículo válido foi encontrado na planilha.');
+        return;
+      }
+
+      // Ordena cronologicamente pela data e horário de saída mais próximo
+      parsedVehicles.sort((a, b) => a.sortTimestamp - b.sortTimestamp);
+
+      vehicles = parsedVehicles;
+      currentDateFilter = 'ALL';
+      currentCategory = 'ALL';
+      currentFilterStatus = 'pending';
+
+      const preReadyTotal = vehicles.filter(v => v.isReady).length;
+      const nowStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      const subtitle = `Atualizado às ${nowStr} • ${vehicles.length} veículos (${preReadyTotal} prontos)`;
+
+      saveState(subtitle);
+      renderApp();
+      showToast(`✅ ${vehicles.length} veículos carregados (${preReadyTotal} já prontos)!`, true);
+    }
+
+    // Listener de upload de arquivo CSV com detecção automática de encoding (UTF-8 / Windows-1252)
+    document.getElementById('csv-input').addEventListener('change', function (e) {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function (evt) {
+        try {
+          const buffer = evt.target.result;
+          let decodedText = '';
+          try {
+            const utf8Decoder = new TextDecoder('utf-8', { fatal: true });
+            decodedText = utf8Decoder.decode(buffer);
+          } catch (decodeErr) {
+            const winDecoder = new TextDecoder('windows-1252');
+            decodedText = winDecoder.decode(buffer);
+          }
+          parseCSVData(decodedText);
+        } catch (err) {
+          showToast('⚠️ Erro ao ler o arquivo CSV.');
+        } finally {
+          e.target.value = '';
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    });
+
+    // ==========================================================================
+    // 5. INTERAÇÕES, PERSISTÊNCIA LOCAL E COMPARTILHAMENTO VIA LINK
+    // ==========================================================================
+    function saveState(subtitleText) {
+      if (subtitleText) {
+        document.getElementById('last-update-info').textContent = subtitleText;
+      }
+      try {
+        const currentSubtitle = document.getElementById('last-update-info').textContent;
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({
+          subtitle: currentSubtitle,
+          vehicles
+        }));
+      } catch (err) {}
+    }
+
+    function toggleVehicleStatus(id) {
+      const idx = vehicles.findIndex(v => v.id === id);
+      if (idx === -1) return;
+
+      vehicles[idx].isReady = !vehicles[idx].isReady;
+      const readyCount = vehicles.filter(v => v.isReady).length;
+      const nowStr = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+      saveState(`Atualizado às ${nowStr} • ${vehicles.length} veículos (${readyCount} prontos)`);
+      renderApp();
+
+      if (vehicles[idx].isReady) {
+        showToast(`✅ ${vehicles[idx].model} marcado como PRONTO!`, true);
+      } else {
+        showToast(`⏳ ${vehicles[idx].model} voltou para FALTAM FAZER.`);
+      }
+    }
+
+    function setStatusFilter(status) {
+      currentFilterStatus = status;
+
+      document.getElementById('tab-pending').classList.toggle('active', status === 'pending');
+      document.getElementById('tab-ready').classList.toggle('active', status === 'ready');
+      document.getElementById('tab-all').classList.toggle('active', status === 'all');
+
+      renderApp();
+    }
+
+    function setDateFilter(dateStr) {
+      currentDateFilter = dateStr;
+      renderApp();
+    }
+
+    function setCategoryFilter(category) {
+      currentCategory = category;
+      renderApp();
+    }
+
+    document.getElementById('search-input').addEventListener('input', function (e) {
+      searchQuery = normalizeText(e.target.value);
+      renderApp();
+    });
+
+    // Gera link compacto com os dados embutidos na URL para envio via WhatsApp
+    document.getElementById('btn-share-link').addEventListener('click', function () {
+      if (!vehicles || vehicles.length === 0) {
+        showToast('⚠️ Carregue uma planilha CSV antes de gerar o link.');
+        return;
+      }
+
+      try {
+        const compactList = vehicles.map(v => ({
+          d: v.dateDisplay,
+          t: v.timeDisplay,
+          s: v.sortTimestamp,
+          p: v.plate,
+          m: v.model,
+          g: v.group,
+          r: v.res,
+          c: v.client,
+          o: v.obs,
+          z: v.zeroRentals ? 1 : 0,
+          y: v.isReady ? 1 : 0,
+          f: v.fromCsvReady ? 1 : 0
+        }));
+
+        const jsonStr = JSON.stringify(compactList);
+        const encoded = btoa(unescape(encodeURIComponent(jsonStr)));
+        const baseUrl = window.location.href.split('#')[0];
+        const shareUrl = `${baseUrl}#data=${encoded}`;
+
+        if (navigator.clipboard && window.isSecureContext) {
+          navigator.clipboard.writeText(shareUrl).then(() => {
+            showToast('📲 Link copiado! Cole no WhatsApp da equipe do Lava-Rápido.', true);
+          }).catch(() => {
+            fallbackCopyText(shareUrl);
+          });
+        } else {
+          fallbackCopyText(shareUrl);
+        }
+      } catch (err) {
+        showToast('⚠️ Não foi possível gerar o link compartilhável.');
+      }
+    });
+
+    function fallbackCopyText(text) {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.opacity = '0';
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast('📲 Link copiado! Cole no WhatsApp da equipe do Lava-Rápido.', true);
+      } catch (err) {
+        showToast('⚠️ Erro ao copiar o link.');
+      }
+      document.body.removeChild(textarea);
+    }
+
+    document.getElementById('btn-clear').addEventListener('click', function () {
+      vehicles = [];
+      currentDateFilter = 'ALL';
+      currentCategory = 'ALL';
+      currentFilterStatus = 'pending';
+      searchQuery = '';
+      document.getElementById('search-input').value = '';
+      document.getElementById('last-update-info').textContent = 'Carregue a planilha de Saída/Retorno para iniciar';
+      localStorage.removeItem(STORAGE_KEY);
+      if (window.location.hash) {
+        history.replaceState(null, '', window.location.pathname + window.location.search);
+      }
+      renderApp();
+      showToast('🗑️ Dados limpos com sucesso.');
+    });
+
+    // ==========================================================================
+    // 6. RENDERIZAÇÃO PRINCIPAL DO PAINEL
+    // ==========================================================================
+    function renderApp() {
+      const datePillsContainer = document.getElementById('date-pills');
+      const pillsContainer = document.getElementById('category-pills');
+
+      // Renderiza pílulas de Data de Saída
+      if (vehicles.length === 0) {
+        datePillsContainer.innerHTML = '';
+        pillsContainer.innerHTML = '';
+      } else {
+        const datesMap = {};
+        vehicles.forEach(v => {
+          const dKey = v.dateDisplay || 'Sem Data';
+          if (!datesMap[dKey]) {
+            datesMap[dKey] = { count: 0, pending: 0, minTs: v.sortTimestamp };
+          }
+          datesMap[dKey].count++;
+          if (!v.isReady) datesMap[dKey].pending++;
+          if (v.sortTimestamp < datesMap[dKey].minTs) {
+            datesMap[dKey].minTs = v.sortTimestamp;
+          }
+        });
+
+        const sortedDates = Object.keys(datesMap).sort((a, b) => datesMap[a].minTs - datesMap[b].minTs);
+        if (currentDateFilter !== 'ALL' && !datesMap[currentDateFilter]) {
+          currentDateFilter = 'ALL';
+        }
+
+        const totalAllPending = vehicles.filter(v => !v.isReady).length;
+        let datePillsHtml = `
+          <button type="button" class="pill date-pill ${currentDateFilter === 'ALL' ? 'active' : ''}" onclick="setDateFilter('ALL')">
+            📅 Todas as Datas (${totalAllPending} pend.)
+          </button>
+        `;
+        sortedDates.forEach(dt => {
+          const info = datesMap[dt];
+          datePillsHtml += `
+            <button type="button" class="pill date-pill ${currentDateFilter === dt ? 'active' : ''}" onclick="setDateFilter('${escapeHTML(dt)}')">
+              📅 ${escapeHTML(dt)} (${info.pending}/${info.count})
+            </button>
+          `;
+        });
+        datePillsContainer.innerHTML = datePillsHtml;
+      }
+
+      // Escopo filtrado pela data selecionada para atualizar KPIs e categorias do dia
+      const dateScopedVehicles = currentDateFilter === 'ALL'
+        ? vehicles
+        : vehicles.filter(v => (v.dateDisplay || 'Sem Data') === currentDateFilter);
+
+      const total = dateScopedVehicles.length;
+      const readyCount = dateScopedVehicles.filter(v => v.isReady).length;
+      const pendingCount = total - readyCount;
+      const percent = total > 0 ? Math.round((readyCount / total) * 100) : 0;
+
+      // Atualiza KPIs e Abas
+      document.getElementById('kpi-pending').textContent = pendingCount;
+      document.getElementById('kpi-ready').textContent = readyCount;
+      document.getElementById('kpi-total').textContent = total;
+
+      document.getElementById('tab-count-pending').textContent = pendingCount;
+      document.getElementById('tab-count-ready').textContent = readyCount;
+      document.getElementById('tab-count-all').textContent = total;
+
+      document.getElementById('progress-percent').textContent = `${percent}% concluído`;
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+
+      // Renderiza pílulas de categoria/grupo dentro da data selecionada
+      if (vehicles.length > 0) {
+        const groupsMap = {};
+        dateScopedVehicles.forEach(v => {
+          groupsMap[v.group] = (groupsMap[v.group] || 0) + 1;
+        });
+        const sortedGroups = Object.keys(groupsMap).sort();
+
+        if (currentCategory !== 'ALL' && !groupsMap[currentCategory]) {
+          currentCategory = 'ALL';
+        }
+
+        let pillsHtml = `
+          <button type="button" class="pill ${currentCategory === 'ALL' ? 'active' : ''}" onclick="setCategoryFilter('ALL')">
+            Todos os Grupos (${total})
+          </button>
+        `;
+        sortedGroups.forEach(grp => {
+          pillsHtml += `
+            <button type="button" class="pill ${currentCategory === grp ? 'active' : ''}" onclick="setCategoryFilter('${escapeHTML(grp)}')">
+              Grupo ${escapeHTML(grp)} (${groupsMap[grp]})
+            </button>
+          `;
+        });
+        pillsContainer.innerHTML = pillsHtml;
+      }
+
+      const listContainer = document.getElementById('vehicle-list-container');
+
+      // Estado vazio inicial
+      if (vehicles.length === 0) {
+        listContainer.innerHTML = `
+          <div class="empty-box">
+            <span class="icon">🧽</span>
+            <h3>Nenhum veículo carregado</h3>
+            <p>Importe o arquivo <strong>Consulta Saída_Retorno de Veículos.csv</strong> no botão laranja acima ou carregue um exemplo abaixo para visualizar o painel.</p>
+            <button type="button" class="btn" onclick="loadSampleData()" style="margin-top: 6px;">
+              🧪 Carregar Exemplo de Demonstração
+            </button>
+          </div>
+        `;
+        return;
+      }
+
+      // Filtra veículos conforme aba, categoria e busca dentro da data ativa
+      const filtered = dateScopedVehicles.filter(v => {
+        if (currentFilterStatus === 'pending' && v.isReady) return false;
+        if (currentFilterStatus === 'ready' && !v.isReady) return false;
+        if (currentCategory !== 'ALL' && v.group !== currentCategory) return false;
+
+        if (searchQuery) {
+          const hay = normalizeText(`${v.plate} ${v.model} ${v.group} ${v.res} ${v.client} ${v.obs}`);
+          if (!hay.includes(searchQuery)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        const emptyTitle = currentFilterStatus === 'pending'
+          ? '🎉 Tudo pronto por aqui!'
+          : 'Nenhum veículo encontrado neste filtro';
+        const emptyDesc = currentFilterStatus === 'pending'
+          ? 'Não há veículos pendentes para lavagem com os filtros atuais.'
+          : 'Tente alterar a data, a aba de status ou limpar o termo da busca.';
+
+        listContainer.innerHTML = `
+          <div class="empty-box">
+            <span class="icon">${currentFilterStatus === 'pending' ? '✨' : '🔍'}</span>
+            <h3>${emptyTitle}</h3>
+            <p>${emptyDesc}</p>
+          </div>
+        `;
+        return;
+      }
+
+      let cardsHtml = '<div class="vehicle-list">';
+      filtered.forEach(v => {
+        const cardStateClass = v.isReady ? 'is-ready' : 'is-pending';
+        const pillClass = v.isReady ? 'ready' : 'pending';
+        const pillLabel = v.isReady ? '✅ Pronto para Saída' : '⏳ Aguardando Lavagem';
+        const btnClass = v.isReady ? 'mark-pending' : 'mark-ready';
+        const btnLabel = v.isReady ? '↩️ Desfazer' : '🧽 Marcar Pronto';
+
+        cardsHtml += `
+          <article class="v-card ${cardStateClass}">
+            <div class="v-card-top">
+              <div class="time-badge">
+                <span>🕒 ${escapeHTML(v.timeDisplay)}</span>
+                ${v.dateDisplay ? `<span class="date-sub">• ${escapeHTML(v.dateDisplay)}</span>` : ''}
+              </div>
+              <span class="group-badge">Grupo ${escapeHTML(v.group)}</span>
+            </div>
+
+            <div class="v-card-body">
+              <div class="v-model">${escapeHTML(v.model)}</div>
+              <div class="v-meta-row">
+                ${v.plate ? `<span class="plate-tag">${escapeHTML(v.plate)}</span>` : ''}
+                ${v.res ? `<span>Reserva: <strong>#${escapeHTML(v.res)}</strong></span>` : ''}
+                ${v.client ? `<span>• ${escapeHTML(v.client)}</span>` : ''}
+                ${v.fromCsvReady ? `<span class="csv-ready-hint">✓ Já pronto na planilha</span>` : ''}
+              </div>
+              ${v.zeroRentals ? `<div class="v-warning">⚠️ <strong>Qtde Locações: 0</strong> — Atenção: cliente pode não retirar o veículo</div>` : ''}
+              ${v.obs ? `<div class="v-obs">📝 ${escapeHTML(v.obs)}</div>` : ''}
+            </div>
+
+            <div class="v-card-footer">
+              <span class="status-pill ${pillClass}">${pillLabel}</span>
+              <button type="button" class="toggle-status-btn ${btnClass}" onclick="toggleVehicleStatus('${escapeHTML(v.id)}')">
+                ${btnLabel}
+              </button>
+            </div>
+          </article>
+        `;
+      });
+      cardsHtml += '</div>';
+
+      listContainer.innerHTML = cardsHtml;
+    }
+
+    // ==========================================================================
+    // 7. DADOS DE DEMONSTRAÇÃO E INICIALIZAÇÃO
+    // ==========================================================================
+    function loadSampleData() {
+      const sampleCSV = [
+        'Grupo;Modelo;Data/Hora Saída;Reserva;Qtde Locações;Prontos;Observação',
+        'B;HB20 1.0 Hatch;14/11/2026 08:30;984512;5;1;Lavagem completa concluída',
+        'B;Onix 1.0;14/11/2026 09:00;984519;0;0;Prioridade horário',
+        'C;Cronos 1.3 Sedan;14/11/2026 09:30;984525;3;0;',
+        'FX;T-Cross Automatico;15/11/2026 10:15;984533;12;1;Pronto no pátio',
+        'CS;Tracker Turbo;15/11/2026 11:00;984540;0;0;Cadeirinha bebê solicitada',
+        'A;Mobi Like 1.0;15/11/2026 11:30;984548;2;0;'
+      ].join('\n');
+
+      parseCSVData(sampleCSV);
+    }
+
+    (function initApp() {
+      // 1. Verifica se recebeu dados compartilhados via URL (#data=...)
+      if (window.location.hash && window.location.hash.startsWith('#data=')) {
+        try {
+          const encoded = window.location.hash.slice(6);
+          const jsonStr = decodeURIComponent(escape(atob(encoded)));
+          const compactList = JSON.parse(jsonStr);
+
+          if (Array.isArray(compactList) && compactList.length > 0) {
+            vehicles = compactList.map((item, idx) => ({
+              id: `shared_${idx}_${Date.now()}`,
+              dateDisplay: item.d || '',
+              timeDisplay: item.t || '--:--',
+              sortTimestamp: item.s || Number.MAX_SAFE_INTEGER,
+              plate: item.p || '',
+              model: item.m || 'Veículo',
+              group: item.g || 'GERAL',
+              res: item.r || '',
+              client: item.c || '',
+              obs: item.o || '',
+              zeroRentals: item.z === 1,
+              isReady: item.y === 1,
+              fromCsvReady: item.f === 1
+            }));
+
+            const readyTotal = vehicles.filter(v => v.isReady).length;
+            saveState(`Lista compartilhada • ${vehicles.length} veículos (${readyTotal} prontos)`);
+            renderApp();
+            showToast('📲 Lista compartilhada carregada com sucesso!', true);
+            return;
+          }
+        } catch (err) {
+          showToast('⚠️ Link compartilhado inválido ou corrompido.');
+        }
+      }
+
+      // 2. Caso contrário, restaura o último estado salvo no navegador
+      try {
+        const savedRaw = localStorage.getItem(STORAGE_KEY);
+        if (savedRaw) {
+          const parsed = JSON.parse(savedRaw);
+          if (parsed && Array.isArray(parsed.vehicles) && parsed.vehicles.length > 0) {
+            vehicles = parsed.vehicles;
+            if (parsed.subtitle) {
+              document.getElementById('last-update-info').textContent = parsed.subtitle;
+            }
+          }
+        }
+      } catch (err) {}
+
+      renderApp();
+    })();
+  </script>
+</body>
+</html>
